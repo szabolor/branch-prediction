@@ -72,7 +72,7 @@ BIT_TYPE bbu_predict(struct bbu *bbu, BIT_TYPE correct)
 
 	/* update history with the actual branching */
 	if (correct) 
-		entry->data += (entry->data < bbu->state_count) ? 1 : 0;
+		entry->data += (entry->data < (bbu->state_count - 1)) ? 1 : 0;
 	else
 		entry->data -= (entry->data > 0) ? 1 : 0;
 
