@@ -42,9 +42,11 @@ BIT_TYPE bbu_predict(struct bbu *bbu, BIT_TYPE correct)
 	struct cache_entry *entry;
 	BIT_TYPE retval = 0;
 	
+	/* find entry, if there's one with the current history shr,
+	   or create one with weak (not) taken status from the last branch */
 	entry = lru_cache_find_entry(bbu->cache, bbu->shr);
 	if (entry == NULL)
-		entry = lru_cache_insert_entry(bbu->cache, bbu->shr, (bbu->state_count>>1) );
+		entry = lru_cache_insert_entry(bbu->cache, bbu->shr, (bbu->state_count>>1) + (bbu->shr&1) );
 
 	/* predict! */
 	retval = ( entry->data > (bbu->state_count>>1) );
