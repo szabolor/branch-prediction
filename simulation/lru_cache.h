@@ -21,17 +21,11 @@ struct lru_cache {
 	struct cache_entry *newest_entry;
 };
 
-
 struct cache_entry * lru_cache_find_entry(
 	struct lru_cache *cache,
 	CACHE_KEY_TYPE find_key
 );
 struct cache_entry * lru_cache_insert_entry(
-	struct lru_cache *cache,
-	CACHE_KEY_TYPE key,
-	CACHE_DATA_TYPE data
-);
-struct cache_entry * lru_cache_insert_or_update_entry(
 	struct lru_cache *cache,
 	CACHE_KEY_TYPE key,
 	CACHE_DATA_TYPE data

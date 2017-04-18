@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "lru_cache.h"
 
+
 struct cache_entry * lru_cache_find_entry(
 	struct lru_cache *cache,
 	CACHE_KEY_TYPE find_key
@@ -20,24 +21,40 @@ struct cache_entry * lru_cache_find_entry(
 	return NULL;
 }
 
+
 struct cache_entry * lru_cache_insert_entry(
 	struct lru_cache *cache,
 	CACHE_KEY_TYPE key,
 	CACHE_DATA_TYPE data
 )
 {
-	struct cache_entry *cache_ptr;
+	struct cache_entry *cache_ptr, *cache_tmp;
 	
-	cache_ptr = (struct cache_entry *) malloc(sizeof(struct cache_entry));
+	/* search for the key, or create a new one */
+	cache_ptr = lru_cache_find_entry(cache, key);
+	if (cache_ptr == NULL) {
+		/* if not found, create a new entry */
+		cache_ptr = (struct cache_entry *) malloc(sizeof(struct cache_entry));
+		cache->current_depth += 1;
+	} else if (cache_ptr->newer) {
+		/* so entries are mutables, do not depend on the same key for the
+		   same pointer, sorry... */
+		cache_tmp = cache_ptr->newer;
+		cache_ptr->key = cache_tmp->key;
+		cache_ptr->data = cache_tmp->data;
+		if (cache_tmp->newer)
+			cache_ptr->newer = cache_tmp->newer;
+		cache_ptr = cache_tmp;
+	}
+
 	cache_ptr->key = key;
 	cache_ptr->data = data;
 	cache_ptr->newer = NULL;
 
-	if (cache->newest_entry) 
+	if (cache->newest_entry && cache->newest_entry != cache_ptr)
 		cache->newest_entry->newer = cache_ptr;
 
 	cache->newest_entry = cache_ptr;
-	cache->current_depth += 1;
 
 	if (cache->oldest_entry == NULL)
 		cache->oldest_entry = cache_ptr;
@@ -54,22 +71,6 @@ struct cache_entry * lru_cache_insert_entry(
 	return cache->newest_entry;
 }
 
-struct cache_entry * lru_cache_insert_or_update_entry(
-	struct lru_cache *cache,
-	CACHE_KEY_TYPE key,
-	CACHE_DATA_TYPE data
-)
-{
-	struct cache_entry *cache_ptr;
-
-	cache_ptr = lru_cache_find_entry(cache, key);
-	if (cache_ptr)
-		cache_ptr->data = data;
-	else
-		cache_ptr = lru_cache_insert_entry(cache, key, data);
-
-	return cache_ptr;
-}
 
 struct lru_cache * lru_cache_init(CACHE_DEPTH_TYPE depth)
 {
@@ -83,6 +84,7 @@ struct lru_cache * lru_cache_init(CACHE_DEPTH_TYPE depth)
 
 	return cache;
 }
+
 
 void lru_cache_destroy(struct lru_cache *cache)
 {
@@ -112,7 +114,7 @@ void lru_cache_print(struct lru_cache *cache)
 		printf("%lu - %u\n", cache_ptr->key, cache_ptr->data);
 		cache_ptr = cache_ptr->newer;
 	}
-	printf("------------\n\n");
+	printf("\n");
 }
 
 #if TEST_MODE
@@ -120,17 +122,14 @@ int main(int argc, char const *argv[])
 {
 	struct lru_cache *cache;
 	struct cache_entry *entry;
+	int i;
 
-	cache = lru_cache_init(3);
-	lru_cache_insert_or_update_entry(cache, 111, 221);
-	lru_cache_insert_or_update_entry(cache, 112, 222);
-	lru_cache_insert_or_update_entry(cache, 113, 223);
-	lru_cache_insert_or_update_entry(cache, 114, 224);
-	lru_cache_insert_or_update_entry(cache, 115, 225);
-	lru_cache_insert_or_update_entry(cache, 116, 226);
-	lru_cache_insert_or_update_entry(cache, 116, 227);
-	lru_cache_insert_or_update_entry(cache, 114, 228);
-	lru_cache_print(cache);
+	cache = lru_cache_init(4);
+	for (i=0; i<20; ++i) {
+		printf("Adding key %d\n", ((i << 1) & 0x3) ^ ((i >> 2) & 0x3));
+		lru_cache_insert_entry(cache, ((i << 1) & 0x3) ^ ((i >> 2) & 0x3), 123);
+		lru_cache_print(cache);
+	}
 
 	entry = lru_cache_find_entry(cache, 116);
 	if (entry)
