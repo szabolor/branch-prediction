@@ -9,7 +9,7 @@
    Build with:
     `gcc -Wall -Wextra -pedantic -o search_patterns search_patterns.c bbu.c lru_cache.c'
    and run like:
-    `./search_patterns 9'
+    `./search_patterns 18 12 20 4'
 */
 
 #define SAMPLE_SIZE (10000)

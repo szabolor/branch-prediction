@@ -12,6 +12,7 @@ struct cache_entry {
 	CACHE_KEY_TYPE  key;
 	CACHE_DATA_TYPE data;
 	struct cache_entry *newer;
+	struct cache_entry *older;
 };
 
 struct lru_cache {

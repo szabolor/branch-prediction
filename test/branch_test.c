@@ -13,10 +13,13 @@
     `gcc -Wall -Wextra -pedantic -O0 -ggdb -o branch_test branch_test.c'
    Inspect assembly code for the critical section (e.g. compiler doesn't optimized 
    away important steps):
-    `objdump -d -S branch_test'
+    `objdump -d -S (-M intel) branch_test'
    Run with perf (usually perf packed with 'linux-tools-generic' / 'linux-tools-common')
     `perf stat ./branch_test 17 3'
    And watch for branch-misses!
+
+   E.g.:
+    ``
 */
 
 int main(int argc, char const *argv[]) {
